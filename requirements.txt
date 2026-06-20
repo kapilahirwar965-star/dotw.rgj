@@ -1,6 +1,1 @@
-streamlit==1.58.0
-google-generativeai
-python-docx
-pypdf
-anthropic
-openai
+c69450d090a5c9a2ceeea4b24d6c9d2c28789e47
