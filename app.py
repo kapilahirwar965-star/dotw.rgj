@@ -552,15 +552,12 @@ def create_docx(draft_text):
             parts = text_clean.split(':-', 1)
             if len(parts) == 2:
                 p.add_run(parts[0] + ":- ").bold = True
-                # यह फिल्टर आपके विषय-संदर्भ के फालतू डैश को साफ रखेगा
+                # यह फिल्टर विषय-संदर्भ के फालतू डैश और स्टार को साफ रखेगा
                 detail_clean = parts[1].strip().lstrip('-').lstrip('*').strip()
                 p.add_run("\t" + detail_clean)
             else:
                 p.add_run(text).bold = True
             continue
-                p.add_run(text).bold = True
-            continue
-
         if in_address:
             p.paragraph_format.left_indent = Inches(1.0)
             apply_formatting(p, 0, 2, 1.15)
