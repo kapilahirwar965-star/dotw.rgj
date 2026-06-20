@@ -1090,4 +1090,4 @@ with col2:
         
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.text_area("संपादित करें (Edit Draft Text):", value=draft_text, height=250)
+    st.text_area("संपादित करें (Edit Draft Text):", value=st.session_state.draft_text, height=250)
