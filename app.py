@@ -246,16 +246,16 @@ with st.sidebar:
     
     # Specific Department Inputs (Pre-filled as requested)
   # dept_header = st.text_input(
-#     "विभाग/कार्यालय का नाम",
-#     value="कार्यालय कलेक्टेरेट (जनजातीय कार्य तथा अनुसूचित जाति कल्याण विभाग)"
-# )
-dept_header = "कार्यालय कलेक्टेरेट (जनजातीय कार्य तथा अनुसूचित जाति कल्याण विभाग)"
+    #     "विभाग/कार्यालय का नाम",
+    #     value="कार्यालय कलेक्टेरेट (जनजातीय कार्य तथा अनुसूचित जाति कल्याण विभाग)"
+    # )
+    dept_header = "कार्यालय कलेक्टेरेट (जनजातीय कार्य तथा अनुसूचित जाति कल्याण विभाग)"
 
-# district_info = st.text_input("जिला व स्थान", value="जिला राजगढ़ (ब्यावरा) म.प्र.")
-district_info = "जिला राजगढ़ (ब्यावरा) म.प्र."
+    # district_info = st.text_input("जिला व स्थान", value="जिला राजगढ़ (ब्यावरा) म.प्र.")
+    district_info = "जिला राजगढ़ (ब्यावरा) म.प्र."
 
-# email_id = st.text_input("E-Mail ID", value="dotwrjg@mp.gov.in")
-email_id = "dotwrjg@mp.gov.in"
+    # email_id = st.text_input("E-Mail ID", value="Dotw.rjg@mp.gov.in")
+    email_id = "Dotw.rjg@mp.gov.in"
     
     # Branch and Outward Numbers
     branch_name = st.selectbox(
