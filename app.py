@@ -531,7 +531,8 @@ def create_docx(draft_text):
     p_meta = doc.add_paragraph()
     apply_formatting(p_meta, 4, 12, 1.15) 
     p_meta.paragraph_format.tab_stops.add_tab_stop(Inches(6.5), docx.enum.text.WD_TAB_ALIGNMENT.RIGHT)
-    p_meta.add_run("क्रमांक / / योजना / 2026-27\tराजगढ़, दिनांक.....................")
+    selected_br = st.session_state.get("selected_branch", "योजना")
+    p_meta.add_run(f"क्रमांक /       / {selected_br} / 2026-27\tराजगढ़, दिनांक....................")
 
     # 6. पूरे पत्र के पाठ को व्यवस्थित रूप से फॉर्मेट करना
     lines = draft_text.split('\n') if isinstance(draft_text, str) else []
