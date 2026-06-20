@@ -176,8 +176,6 @@ with st.sidebar:
         help="OpenAI का उपयोग करने के लिए अपनी API कुंजी दर्ज करें।"
     )
 
-   
-
     # Model Provider selection
     provider = st.selectbox(
         "मॉडल प्रदाता (Model Provider)",
@@ -244,17 +242,9 @@ with st.sidebar:
         index=0
     )
     
-    # Specific Department Inputs (Pre-filled as requested)
-  # dept_header = st.text_input(
-    #     "विभाग/कार्यालय का नाम",
-    #     value="कार्यालय कलेक्टेरेट (जनजातीय कार्य तथा अनुसूचित जाति कल्याण विभाग)"
-    # )
+    # Specific Department Inputs (Pre-filled & Hidden as requested)
     dept_header = "कार्यालय कलेक्टेरेट (जनजातीय कार्य तथा अनुसूचित जाति कल्याण विभाग)"
-
-    # district_info = st.text_input("जिला व स्थान", value="जिला राजगढ़ (ब्यावरा) म.प्र.")
     district_info = "जिला राजगढ़ (ब्यावरा) म.प्र."
-
-    # email_id = st.text_input("E-Mail ID", value="Dotw.rjg@mp.gov.in")
     email_id = "Dotw.rjg@mp.gov.in"
     
     # Branch and Outward Numbers
@@ -322,7 +312,6 @@ def extract_text_from_pdf(pdf_file):
 def get_system_instruction(workflow, dept, district, email, branch, out_no, date, sign_off, f_path):
     """Builds a strict, detailed system instruction for the Gemini API with Rajgarh guidelines."""
     
-    # Define primary and subordinate signature blocks based on signatory (Signatory Hierarchy)
     if "कलेक्टर" in sign_off:
         primary_sig = "कलेक्टर\nजिला राजगढ़ (म.प्र.)"
         subordinate_sig = "जिला संयोजक\nअनुसूचित जाति तथा जनजातीय कल्याण विभाग\nजिला राजगढ़ (म.प्र.)"
@@ -330,7 +319,6 @@ def get_system_instruction(workflow, dept, district, email, branch, out_no, date
         primary_sig = "जिला संयोजक\nअनुसूचित जाति तथा जनजातीय कल्याण विभाग\nजिला राजगढ़ (म.प्र.)"
         subordinate_sig = "जिला संयोजक\nअनुसूचित जाति तथा जनजातीय कल्याण विभाग\nजिला राजगढ़ (म.प्र.)"
 
-    # Branch-specific operational domain details
     branch_contexts = {
         "योजना": "योजना शाखा मुख्य रूप से जनजातीय कल्याण योजनाओं, सांख्यिकी, लक्ष्यों, आवंटन और प्रशासनिक रिपोर्टिंग पर केंद्रित है.",
         "छात्रावास": "छात्रावास शाखा मुख्य रूप से जनजातीय छात्रावास प्रबंधन, छात्र प्रवेश, बुनियादी सुविधाओं, छात्रावास अधीक्षक निगरानी और निरीक्षण पर केंद्रित है.",
@@ -386,7 +374,7 @@ def get_system_instruction(workflow, dept, district, email, branch, out_no, date
        - अधीनस्थ या अन्य कार्यालयों से प्राप्त जानकारी को एकत्रित कर एक संयुक्त प्रतिवेदन या अंतिम प्रतिउत्तर तैयार करें.
        - पत्र की मुख्य विषयवस्तु में "संदर्भित पत्र के अनुक्रम में जानकारी संलग्न प्रेषित है..." या "उपरोक्त विषयांतर्गत निर्देशानुसार लेख है कि..." का प्रयोग करें.
          """
-    elif "अंतर्विभागीय जानकारी मांग" in workflow:
+    elif "intent-based" in workflow or "अंतर्विभागीय जानकारी मांग" in workflow:
         instruction += """
        - कार्य: अन्य स्थानीय शासकीय विभागों से जानकारी प्राप्त करने हेतु पत्र.
        - संबोधन में 'प्रति,' के अंतर्गत बुद्धिमान विभाग राउटर (Intelligent Department Router) द्वारा निर्धारित विभाग/अधिकारी का पदनाम और पता लिखें.
@@ -425,14 +413,13 @@ def get_system_instruction(workflow, dept, district, email, branch, out_no, date
          "{f_path}"
     """
 
-    # 6. Intelligent Department Router (बुद्धिमान विभाग राउटर)
     routing_instr = f"""
     6. बुद्धिमान विभाग राउटर (Intelligent Department Router) नियम:
        - आपको आने वाले पत्र के इनपुट दस्तावेज़ सामग्री (Extracted Content), अतिरिक्त निर्देश (Core Context/Instructions) या अपलोड किए गए चित्र के विषय/संदर्भ का सूक्ष्मता से विश्लेषण करना है.
        - आपको "District Level Policy/Data Collection" (जिला स्तरीय नीति/डेटा संग्रह) और "Block Level Execution" (विकासखंड स्तरीय निष्पादन) के बीच स्पष्ट रूप से अंतर करना होगा.
        
        पदानुक्रम और नोडल विभाग निर्धारण नियम (Hierarchy and Nodal Department Rules):
-       - पत्र के "विषय" (Subject) और "संदर्भ" (Reference) को सर्वोच्च प्राथमिकता देकर पहले जिला (District) स्तर पर नोडल विभाग/कार्यालय का स्वतः निर्धारण करें.
+       - पत्र के "विषय" (Subject) and "संदर्भ" (Reference) को सर्वोच्च प्राथमिकता देकर पहले जिला (District) स्तर पर नोडल विभाग/कार्यालय का स्वतः निर्धारण करें.
        - सामान्य जिला स्तरीय जानकारी या डेटा संकलन के पत्रों को "मुख्य कार्यपालन अधिकारी, जनपद पंचायत" (Block/Janpad level) को संबोधित या रूट न करें. इन्हें केवल तब ही जनपद पंचायत (Janpad CEO) स्तर पर भेजा जाएगा, जब पत्र का विषय विशेष रूप से और केवल किसी एकल ग्राम पंचायत (single Gram Panchayat) की अधोसंरचना या मनरेगा (MGNREGA) कार्यों तक ही सीमित हो.
        
        निम्नलिखित administrative विषय-टू-विभाग मैपिंग (Topic-to-Department Mapping) पदानुक्रम का कड़ाई से पालन करें:
@@ -456,7 +443,7 @@ def get_system_instruction(workflow, dept, district, email, branch, out_no, date
        - केवल तैयार किया गया पत्र/टिप्पणी/आदेश ही आउटपुट में प्रदान करें. कोई अन्य बाहरी बातचीत, परिचय, या "यह रहा आपका प्रारूप" जैसी बातें न लिखें.
        - जहां भी अज्ञात आंकड़े या नाम हों, वहां उचित वर्गाकार कोष्ठकों जैसे [क्रमांक], [दिनांक], [नाम], [आंकड़ा] का प्रयोग करें.
 
-    8. डायनेमिक ड्राफ्टिंग लॉजिक (Dynamic Drafting Logic) एवं डेटा प्लेसमेंट और फॉर्मेटिंग लॉक:
+    8. डायनेमिक ड्राफ्टिंग लॉजिक (Dynamic Drafting Logic) एवं डेटा प्लेसमेंट और फॉर्मेटिंग锁:
        - Dynamic Content Lock: सिस्टम को हमेशा केवल और केवल यूजर द्वारा वर्तमान में अपलोड की गई फ़ाइल (PDF/Image) का ही वास्तविक विषय, संदर्भ, विभाग, और अंदर का डेटा पढ़ना है।
        - Example vs Reality: कोड में जो 'राजगढ़ गोल्ड स्टैंडर्ड' प्रारूप दिया गया है, वह केवल विज़ुअल स्टाइल (हेडर डिजाइन, 1.0 स्पेसिंग, 1-टैब पैराग्राफ इंडेंट, राइट-साइड सील/साइन ब्लॉक) की नकल करने के लिए है। उदाहरण का टेक्स्ट (सांख्यिकी अधिकारी, विकासखंडवार आँकड़े) कभी भी नए पत्रों में रिपीट नहीं होना चाहिए।
        - Strict Input Parsing: जब नया आवक पत्र (जैसे आयुक्त अनुसूचित जाति विकास का परिसंपत्तियों वाला पत्र) अपलोड हो, तो इनपुट डेटा के आधार पर प्रति, विषय, संदर्भ, और नीचे की तालिका/विवरण को पूरी तरह नया और तार्किक रूप से तैयार करो।
@@ -537,7 +524,6 @@ def create_docx(draft_text):
     # 6. पूरे पत्र के पाठ को व्यवस्थित रूप से फॉर्मेट करना
     lines = draft_text.split('\n') if isinstance(draft_text, str) else []
     
-    # Pre-scan for endorsement number block to avoid duplicate/missing issues
     has_endorsement_no = False
     for line in lines:
         text_check = line.strip()
@@ -551,21 +537,18 @@ def create_docx(draft_text):
         if not text:
             continue
             
-        # एआई द्वारा उत्पन्न टेक्स्ट में से बोल्ड स्टार्स (**) और ट्रेलिंग हाइफन साफ करना
         text = text.replace("**", "")
         text = text.replace("---", "")
         
-        # हेडर के अनचाहे डुप्लिकेट्स या एक्स्ट्रा डिवाइडर लाइनों को रोकना
         if "कार्यालय कलेक्टर" in text or "E-Mail ID:" in text or "क्रमांक /" in text or "Phone No." in text or "जिला राजगढ़ (ब्यावरा)" in text or text.strip("_") == "" or text.strip("-") == "" or text.strip("=") == "":
             continue
 
-        # Auto-insert endorsement number line before "प्रतिलिपि सूचनार्थ" if missing
         if "प्रतिलिपि सूचनार्थ" in text and not has_endorsement_no:
             p_endo = doc.add_paragraph()
             apply_formatting(p_endo, 24, 12, 1.15)
             p_endo.paragraph_format.tab_stops.add_tab_stop(Inches(6.5), docx.enum.text.WD_TAB_ALIGNMENT.RIGHT)
             selected_br = st.session_state.get("selected_branch", "योजना")
-            p_endo.add_run(f"पृ. क्रमांक / {selected_br} / 2026-27\tराजगढ़, दिनांक :- ....................")
+            p_endo.add_run(f"पृ. क्रमांक /       / {selected_br} / 2026-27\tराजगढ़, दिनांक :- ....................")
             has_endorsement_no = True
 
         p = doc.add_paragraph()
@@ -577,26 +560,25 @@ def create_docx(draft_text):
             in_address = True
             continue
             
-        # विषय या संदर्भ (Proper Hanging Indent & Sharp Bold Header)
+        # विषय या संदर्भ - कड़क वर्टिकल टैब स्टॉप अलाइनमेंट (1.0 इंच पर लॉक)
         if text.startswith(("विषय", "संदर्भ")):
             in_address = False
             apply_formatting(p, 12, 6, 1.15)
-            p.paragraph_format.left_indent = Inches(0.75)
-            p.paragraph_format.first_line_indent = Inches(-0.75)
+            p.paragraph_format.left_indent = Inches(1.0)
+            p.paragraph_format.first_line_indent = Inches(-1.0)
             
-            # विषय और संदर्भ के बाद आने वाले सेपरेटर को एक समान (:-) करना
-            text_clean = text.replace(":-", ":-").replace(":-", ":-")
+            text_clean = text.replace("ः-", ":-").replace(":", ":-").replace(":-", ":-")
             parts = text_clean.split(':-', 1)
             if len(parts) == 2:
                 p.add_run(parts[0] + ":- ").bold = True
-                p.add_run(parts[1].strip())
+                p.add_run("\t" + parts[1].strip())
             else:
                 p.add_run(text).bold = True
             continue
 
-        # प्रति के नीचे वाला पता (Strict 0.5 इंच अंदर खिसका हुआ)
+        # प्रति के नीचे वाला पदनाम और पता (Strict 1.0 इंच की सीध में लॉक)
         if in_address:
-            p.paragraph_format.left_indent = Inches(0.5)
+            p.paragraph_format.left_indent = Inches(1.0)
             apply_formatting(p, 0, 2, 1.15)
             p.add_run(text)
             continue
@@ -628,7 +610,7 @@ def create_docx(draft_text):
             p.add_run(text).bold = True
             continue
 
-        # जिला संयोजक / कलेक्टर हस्ताक्षर ब्लॉक (Center aligned at a tab stop on the right side)
+        # जिला संयोजक / कलेक्टर हस्ताक्षर ब्लॉक
         sig_keywords = [
             "कलेक्टर", "अपर कलेक्टर", "जिला संयोजक", 
             "अनुसूचित जाति तथा जनजातीय कल्याण विभाग", 
@@ -644,7 +626,6 @@ def create_docx(draft_text):
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.left_indent = Inches(0)
             apply_formatting(p, 0, 0, 1.1)
-            # Add center-aligned tab stop at 4.75 inches (about 1.5 to 1.75 inches from 6.5 inches right margin to prevent wrap)
             p.paragraph_format.tab_stops.add_tab_stop(Inches(4.75), docx.enum.text.WD_TAB_ALIGNMENT.CENTER)
             p.add_run("\t" + text).bold = True
             continue
@@ -686,7 +667,6 @@ def render_draft_to_html(draft_text):
         </div>
         """
 
-    # Pre-scan for endorsement block in HTML to auto-insert if missing
     has_endorsement_no = False
     for line in lines:
         trimmed_check = line.strip()
@@ -694,11 +674,11 @@ def render_draft_to_html(draft_text):
             has_endorsement_no = True
             break
 
+    in_address = False
     for line in lines:
         trimmed = line.strip()
         cleaned_trimmed = trimmed.strip("()[]{}* \t,.-")
         
-        # Skip extra line separators or dividers
         if trimmed and (trimmed.strip("_") == "" or trimmed.strip("-") == "" or trimmed.strip("=") == ""):
             continue
             
@@ -753,18 +733,40 @@ def render_draft_to_html(draft_text):
                 """)
             elif "राजगढ़, दिनांक" in trimmed or "दिनांक:" in trimmed:
                 html_lines.append(f"<div style='text-align: right; padding-right: 1rem;'>{trimmed}</div>")
-            elif trimmed.startswith("प्रति,") or trimmed.startswith("विषय:-") or trimmed.startswith("संदर्भ:-") or trimmed.startswith("प्रतिलिपि"):
-                if "प्रतिलिपि" in trimmed and not has_endorsement_no:
-                    # Dynamically insert the HTML endorsement block before the "प्रतिलिपि" text
+            elif trimmed.startswith("प्रति,"):
+                html_lines.append(f"<div style='font-weight: bold; color: #7A1C1C; margin-top: 8px;'>{trimmed}</div>")
+                in_address = True
+                continue
+            elif trimmed.startswith(("विषय:-", "विषयः-", "संदर्भ:-", "संदर्भः-", "विषय:", "संदर्भ:")) or "विषय" in trimmed[:10] or "संदर्भ" in trimmed[:10]:
+                in_address = False
+                text_clean = trimmed.replace("ः-", ":-").replace(":", ":-").replace(":-", ":-")
+                parts = text_clean.split(':-', 1)
+                if len(parts) == 2:
+                    html_lines.append(f"""
+                    <div style="display: flex; margin-top: 6px; margin-bottom: 4px;">
+                        <div style="font-weight: bold; color: #7A1C1C; min-width: 1.0in; max-width: 1.0in;">{parts[0]}:-</div>
+                        <div style="text-align: left; flex-grow: 1;">{parts[1].strip()}</div>
+                    </div>
+                    """)
+                else:
+                    html_lines.append(f"<div style='font-weight: bold; color: #7A1C1C; margin-top: 8px;'>{trimmed}</div>")
+                continue
+            elif "प्रतिलिपि सूचनार्थ" in trimmed:
+                in_address = False
+                if not has_endorsement_no:
                     selected_br = st.session_state.get("selected_branch", "योजना")
                     html_lines.append(f"""
                     <div style="display: flex; justify-content: space-between; margin-top: 15px; margin-bottom: 10px; font-weight: normal;">
-                        <div>पृ. क्रमांक / {selected_br} / 2026-27</div>
+                        <div>पृ. क्रमांक /       / {selected_br} / 2026-27</div>
                         <div>राजगढ़, दिनांक :- ....................</div>
                     </div>
                     """)
                     has_endorsement_no = True
-                html_lines.append(f"<div style='font-weight: bold; color: #7A1C1C;'>{trimmed}</div>")
+                html_lines.append(f"<div style='font-weight: bold; color: #7A1C1C; margin-top: 12px;'>{trimmed}</div>")
+                continue
+            elif in_address:
+                html_lines.append(f"<div style='text-align: left; margin-left: 1.0in; margin-top: 2px; margin-bottom: 2px;'>{trimmed}</div>")
+                continue
             else:
                 formatted_line = trimmed
                 parts = trimmed.split('**')
@@ -910,7 +912,7 @@ with col2:
                     )
                     
                     # Build prompt inputs
-                    prompt = f"कृपया निम्न स्रोत सामग्री के आधार पर '{workflow_type}' का शासकीय प्रारूप तैयार करें। विशेष निर्देश:\n1. पत्र के हेडर में जावक क्रमांक बिल्कुल हूबहू '{outward_no}' ही होना चाहिए, इसमें अपने मन से कोई शब्द न बदलें।\n2. 'प्रति,' लिखने के बाद, उसके नीचे आने वाले प्राप्तकर्ता के पदनाम या विवरण को भी दो बार Tab स्पेस देकर उसी सीध में लाएं जहाँ से विषय का विवरण शुरू होता है।\n3. 'विषय:-' और 'संदर्भ:-' लिखने के ठीक बाद दो बार Tab स्पेस (खाली जगह) दें, ताकि आगे का पूरा टेक्स्ट एक सीधी खड़ी लाइन (align) में व्यवस्थित दिखे।\n4. प्राप्तकर्ता का पद, विषय का मैटर, और संदर्भ का मैटर—ये तीनों बिल्कुल एक ही वर्टिकल सीध (एक के नीचे एक) से शुरू होने चाहिए।\n5. पत्र के मुख्य भाग (Body Text) की शुरुआत करते समय, संदर्भ का हवाला देने वाली पहली लाइन and विवरण वाली लाइन को आपस में जोड़कर एक ही निरंतर पैराग्राफ (continuous paragraph) में लिखें।\n6. पत्र के मुख्य भाग (Body Text) को अनावश्यक रूप से लंबा न करें। भाषा को अत्यंत संक्षिप्त, सटीक और सुगठित (concise and crisp) रखें ताकि पूरा मुख्य पत्र और नीचे की प्रतिलिपि (Endorsement) बिना किसी ओवरफ्लो के हर हाल में एक ही पेज (Single Page) के अंदर पूरी तरह समाहित हो सके और पेज के ऊपर-नीचे के स्पेस का अधिकतम उपयोग हो।\n"
+                    prompt = f"कृपया निम्न स्रोत सामग्री के आधार पर '{workflow_type}' का शासकीय प्रारूप तैयार करें। विशेष निर्देश:\n1. पत्र के हेडर में जावक क्रमांक बिल्कुल हूबहू '{outward_no}' ही होना चाहिए, इसमें अपने मन से कोई शब्द न बदलें।\n2. 'प्रति,' लिखने के बाद, उसके नीचे आने वाले प्राप्तकर्ता के पदनाम या विवरण को भी दो बार Tab स्पेस देकर उसी सीध में लाएं जहाँ से विषय का विवरण शुरू होता है।\n3. 'विषय:-' और 'संदर्भ:-' लिखने के ठीक बाद दो बार Tab स्पेस (खाली जगह) दें, ताकि आगे का पूरा टेक्स्ट एक सीधी खड़ी लाइन (align) में व्यवस्थित दिखे।\n4. प्राप्तकर्ता का पद, विषय का मैटर, और संदर्भ का मैटर—ये तीनों बिल्कुल एक ही वर्टिकल सीध (एक के नीचे एक) से शुरू होने चाहिए।\n5. पत्र के मुख्य भाग (Body Text) की शुरुआत करते समय, संदर्भ का हवाला देने वाली पहली लाइन and विवरण वाली लाइन को आपस में जोड़कर एक ही निरंतर पैराग्राफ (continuous paragraph) में लिखें।\n6. पत्र की भाषा या आवश्यक शासकीय सामग्री को जबरदस्ती छोटा या संकुचित (short) नहीं करना है। पत्र की सभी महत्वपूर्ण और जरूरी बातें पूरी गरिमा के साथ विस्तार से लिखी होनी चाहिए। बस पेज लेआउट में ऊपर-नीचे के वर्टिकल स्पेस (spacing) का इस तरह बुद्धिमत्ता से उपयोग करें कि पूरा मुख्य पत्र और प्रतिलिपि अनुभाग व्यवस्थित ढंग से एक ही पेज (Single Page) पर सुंदर तरीके से समायोजित (fit) हो सके।\n"
                     
                     if extracted_content:
                         prompt += f"--- स्रोत दस्तावेज़ सामग्री (Extracted Content) ---\n{extracted_content}\n\n"
@@ -928,7 +930,6 @@ with col2:
                     model_name = selected_model
                     
                     if provider_val == "Google Gemini":
-                        # Call the API using the correct SDK
                         if HAS_NEW_SDK:
                             client = genai.Client(api_key=api_key)
                             contents = []
@@ -956,10 +957,7 @@ with col2:
                                 response = model.generate_content(prompt)
                             st.session_state.draft_text = response.text
                     elif provider_val == "Anthropic Claude":
-                        # Anthropic Claude API call
                         client = anthropic.Anthropic(api_key=api_key)
-                        
-                        # Prepare messages
                         messages_payload = []
                         
                         if image_obj is not None:
@@ -1003,10 +1001,7 @@ with col2:
                         )
                         st.session_state.draft_text = response.content[0].text
                     else:
-                        # OpenAI API call
                         client = OpenAI(api_key=api_key)
-                        
-                        # Prepare messages with system prompt in system role
                         messages_payload = [
                             {"role": "system", "content": system_inst}
                         ]
@@ -1061,7 +1056,6 @@ with col2:
         help="आप इस प्रारूप को अपनी आवश्यकतानुसार संपादित कर सकते हैं। डाउनलोड बटन पर क्लिक करने पर यही संपादित संस्करण डाउनलोड होगा।"
     )
     
-    # Store edited draft text back to session state
     st.session_state.draft_text = edited_draft
     
     # Styled HTML Preview
@@ -1075,9 +1069,7 @@ with col2:
         st.divider()
         st.subheader("📥 एक्सपोर्ट करें (Export)")
         
-        # Word generation
         doc_io = create_docx(st.session_state.draft_text)
-        
         filename = f"{workflow_type.split(' ')[0]}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
         
         st.download_button(
@@ -1088,5 +1080,3 @@ with col2:
         )
         
     st.markdown('</div>', unsafe_allow_html=True)
-
-    st.text_area("संपादित करें (Edit Draft Text):", value=st.session_state.draft_text, height=250)
