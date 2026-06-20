@@ -1052,3 +1052,98 @@ with col2:
         )
         
     st.markdown('</div>', unsafe_allow_html=True)
+# ---------------------------------------------------------
+# Tab 2: जार्विस असिस्टेंट मोड (Iterative Conversational Chat)
+# ---------------------------------------------------------
+with tab2:
+    st.markdown("<h3 style='color: #7A1C1C;'>🤖 जार्विस शासकीय सहायक (Jarvis Chat)</h3>", unsafe_allow_html=True)
+    st.info("यहाँ आप जेमिनी से बोलकर या टाइप करके सीधे संवाद कर सकते हैं। यह आपके पिछले निर्देशों को याद रखेगा।")
+    
+    # चैट इतिहास को सुरक्षित रखने के लिए सेशन स्टेट
+    if "jarvis_messages" not in st.session_state:
+        st.session_state.jarvis_messages = []
+        
+    # पुराना चैट इतिहास स्क्रीन पर प्रदर्शित करना
+    for msg in st.session_state.jarvis_messages:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+            
+    # 🎙️ जार्विस के लिए इनपुट विकल्प (वॉइस और टाइपिंग दोनों)
+    jarvis_audio = st.audio_input("🎙️ जार्विस को बोलकर निर्देश दें (Speak to Jarvis)")
+    jarvis_text = st.chat_input("या यहाँ टाइप करके जार्विस से बात करें...")
+    
+    user_speech_text = ""
+    
+    # यदि वॉइस इनपुट आया है तो उसे विस्पर से ट्रांसक्राइब करें
+    if jarvis_audio is not None:
+        with st.spinner("🔊 जार्विस आपकी आवाज़ सुन रहा है..."):
+            try:
+                user_openai_key = st.session_state.get("openai_key_input", "").strip()
+                final_openai_key = user_openai_key if user_openai_key else os.environ.get("OPENAI_API_KEY")
+                if final_openai_key:
+                    client_ts = OpenAI(api_key=final_openai_key)
+                    transcription = client_ts.audio.transcriptions.create(
+                        model="whisper-1", 
+                        file=jarvis_audio,
+                        language="hi"
+                    )
+                    user_speech_text = transcription.text
+                else:
+                    st.warning("⚠️ जार्विस वॉइस टाइपिंग के लिए साइडबार में 'OpenAI API कुंजी' दर्ज करें।")
+            except Exception as e:
+                st.error(f"ट्रांसक्रिप्शन में त्रुटि: {str(e)}")
+
+    # दोनों में से जो भी इनपुट मिला हो, उसे प्रोसेस करें
+    final_input = jarvis_text if jarvis_text else user_speech_text
+    
+    if final_input:
+        # यूजर का संदेश चैट में जोड़ें
+        with st.chat_message("user"):
+            st.write(final_input)
+        st.session_state.jarvis_messages.append({"role": "user", "content": final_input})
+        
+        # जेमिनी चाबी का प्रबंध
+        user_gemini_key = st.session_state.get("gemini_key_input", "").strip()
+        final_gemini_key = user_gemini_key if user_gemini_key else os.environ.get("GEMINI_API_KEY")
+        if not final_gemini_key:
+            final_gemini_key = "AQ.Ab8RN6ImjKf-XDHlmdmt5LVTQmchwWaHWo-sygGk4pqDjB0kIg"
+            
+        with st.spinner("🤖 जार्विस नया प्रारूप तैयार कर रहा है..."):
+            try:
+                system_inst = get_system_instruction(
+                    workflow=workflow_type, dept=dept_header, district=district_info,
+                    email=email_id, branch=branch_name, out_no=outward_no,
+                    date=letter_date, sign_off=signatory, f_path=footer_path
+                )
+                
+                # चैट हिस्ट्री को जेमिनी के अनुकूल प्रारूप में ढालना
+                if HAS_NEW_SDK:
+                    client = genai.Client(api_key=final_gemini_key)
+                    history_payload = []
+                    for m in st.session_state.jarvis_messages[:-1]:
+                        history_payload.append(types.Content(
+                            role="user" if m["role"] == "user" else "model",
+                            parts=[types.Part.from_text(text=m["content"])]
+                        ))
+                    
+                    chat = client.chats.create(
+                        model=selected_model,
+                        config=types.GenerateContentConfig(system_instruction=system_inst, history=history_payload)
+                    )
+                    response = chat.send_message(final_input)
+                    ai_response = response.text
+                else:
+                    genai_legacy.configure(api_key=final_gemini_key)
+                    model = genai_legacy.GenerativeModel(model_name=selected_model, system_instruction=system_inst)
+                    chat = model.start_chat(history=[])
+                    response = chat.send_message(final_input)
+                    ai_response = response.text
+                
+                # एआई का जवाब चैट में दिखाना और सहेजना
+                with st.chat_message("assistant"):
+                    st.write(ai_response)
+                st.session_state.jarvis_messages.append({"role": "assistant", "content": ai_response})
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"जार्विस रिस्पॉन्स एरर: {str(e)}")
