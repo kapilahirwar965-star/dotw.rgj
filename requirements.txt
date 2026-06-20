@@ -1,1 +1,7 @@
-c69450d090a5c9a2ceeea4b24d6c9d2c28789e47
+streamlit
+google-generativeai
+google-genai
+python-docx
+pypdf
+anthropic
+openai
