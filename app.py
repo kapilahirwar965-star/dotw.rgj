@@ -768,8 +768,10 @@ def render_draft_to_html(draft_text):
     return container_style.format(content="".join(html_lines))
 
 # ---------------------------------------------------------
-# App Interface Layout
+# App Interface Layout (शासकीय प्रारूपक टैब्स - नो एरर लॉक)
 # ---------------------------------------------------------
+tab1, tab2 = st.tabs(["📝 शासकीय प्रारूपक (Draft Engine)", "🤖 जार्विस असिस्टेंट (Jarvis Mode)"])
+col1, col2 = tab1.columns([1, 3])
 col1, col2 = st.columns([1, 3])
 
 with col1:
