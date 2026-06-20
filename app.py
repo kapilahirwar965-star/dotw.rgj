@@ -273,7 +273,7 @@ with st.sidebar:
         ],
         key="selected_branch"
     )
-    outward_no = st.text_input("जावक क्रमांक (Outward Number)", value=f"क्रमांक / {branch_name} / 2026-27")
+    outward_no = st.text_input("जावक क्रमांक (Outward Number)", value=f"क्रमांक /       / {branch_name} / 2026-27")
     
     # Letter Date
     current_date_hi = datetime.datetime.now().strftime("%d/%m/%Y")
