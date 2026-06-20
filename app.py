@@ -549,13 +549,15 @@ def create_docx(draft_text):
             p.paragraph_format.first_line_indent = Inches(-1.0)
             
             text_clean = text.replace("ः-", ":-").replace(":", ":-").replace(":-", ":-")
-        parts = text_clean.split(':-', 1)
-        if len(parts) == 2:
-            p.add_run(parts[0] + ":- ").bold = True
-            # यहाँ फिल्टर लगा दिया है जो फालतू के - और * को अपने आप हटा देगा
-            detail_clean = parts[1].strip().lstrip('-').lstrip('*').strip()
-            p.add_run("\t" + detail_clean)
+            parts = text_clean.split(':-', 1)
+            if len(parts) == 2:
+                p.add_run(parts[0] + ":- ").bold = True
+                # यह फिल्टर आपके विषय-संदर्भ के फालतू डैश को साफ रखेगा
+                detail_clean = parts[1].strip().lstrip('-').lstrip('*').strip()
+                p.add_run("\t" + detail_clean)
             else:
+                p.add_run(text).bold = True
+            continue
                 p.add_run(text).bold = True
             continue
 
