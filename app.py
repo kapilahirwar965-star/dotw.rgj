@@ -176,14 +176,7 @@ with st.sidebar:
         help="OpenAI का उपयोग करने के लिए अपनी API कुंजी दर्ज करें।"
     )
 
-    # Bytez API Key Input
-    bytez_key = st.text_input(
-        "Bytez API कुंजी (Bytez API Key)",
-        type="password",
-        placeholder="bz-...",
-        key="bytez_key_input",
-        help="Bytez का उपयोग करने के लिए अपनी API कुंजी दर्ज करें।"
-    )
+   
 
     # Model Provider selection
     provider = st.selectbox(
