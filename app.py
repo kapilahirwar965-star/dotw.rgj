@@ -791,34 +791,39 @@ with col1:
     extracted_content = ""
     image_obj = None
     
+    if "gemini_file_payload" not in st.session_state:
+        st.session_state.gemini_file_payload = None
+
     if uploaded_file is not None:
         file_ext = uploaded_file.name.split('.')[-1].lower()
         
-        if file_ext == "pdf":
-            st.info("📄 पीडीएफ फाइल संसाधित की जा रही है...")
-            extracted_content = extract_text_from_pdf(uploaded_file)
-            if extracted_content:
-                st.success("सफलतापूर्वक पीडीएफ से पाठ निकाल लिया गया है!")
-                with st.expander("निकाला गया पाठ देखें (Extracted Text)"):
-                    st.text_area("Extracted Text", extracted_content, height=150, disabled=True)
+        # फ़ाइल को सीधे बाइट्स में पढ़ना (ताकि जेमिनी विज़न सीधे देख सके)
+        uploaded_file.seek(0)
+        file_bytes = uploaded_file.read()
+        mime_type = uploaded_file.type
+        
+        if file_ext in ["pdf", "png", "jpg", "jpeg"]:
+            st.info(f"📂 {file_ext.upper()} फ़ाइल अपलोड हो चुकी है। जेमिनी विज़न इसे सीधे स्कैन करेगा...")
+            
+            if HAS_NEW_SDK:
+                st.session_state.gemini_file_payload = types.Part.from_bytes(data=file_bytes, mime_type=mime_type)
+            else:
+                st.session_state.gemini_file_payload = {"mime_type": mime_type, "data": file_bytes}
+                
+            # यह टेक्स्ट मुख्य ड्राफ्ट इंजन को चालू रखने के लिए बाईपास करेगा
+            extracted_content = "[मल्टीमॉडल फ़ाइल सामग्री सफलतापूर्वक लोड की गई]"
+            st.success(f"सफलतापूर्वक {file_ext.upper()} फ़ाइल जेमिनी विज़न में लोड हो गई है!")
             
         elif file_ext == "txt":
             st.info("📝 टेक्स्ट फाइल संसाधित की जा रही है...")
             try:
-                extracted_content = uploaded_file.read().decode("utf-8")
+                extracted_content = file_bytes.decode("utf-8", errors="ignore")
+                st.session_state.gemini_file_payload = None
                 st.success("सफलतापूर्वक टेक्स्ट पढ़ लिया गया है!")
-                with st.expander("निकाला गया पाठ देखें (Extracted Text)"):
+                with st.expander("निकला गया पाठ देखें (Extracted Text)"):
                     st.text_area("Extracted Text", extracted_content, height=150, disabled=True)
             except Exception as e:
                 st.error(f"टेक्स्ट फ़ाइल पढ़ने में त्रुटि: {str(e)}")
-                
-        elif file_ext in ["png", "jpg", "jpeg"]:
-            st.info("🖼️ चित्र संसाधित किया जा रहा है...")
-            try:
-                image_obj = Image.open(uploaded_file)
-                st.image(image_obj, caption="अपलोड किया गया चित्र", use_column_width=True)
-            except Exception as e:
-                st.error(f"चित्र लोड करने में त्रुटि: {str(e)}")
                 
     manual_context = st.text_area(
         "अतिरिक्त निर्देश / मुख्य विषय-वस्तु (Extra Instructions / Core Message)",
