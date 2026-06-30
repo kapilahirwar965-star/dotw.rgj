@@ -900,7 +900,7 @@ with col2:
                 prompt += "2. 'प्रति' लिखने के बाद, उसके नीचे आने वाले प्राप्तकर्ता के पदनाम या विवरण को भी दो बार Tab स्पेस (खाली जगह) दें।\n"
                 prompt += "3. 'विषय:-' और 'संदर्भ:-' लिखने के ठीक बाद दो बार Tab स्पेस (खाली जगह) दें, ताकि आगे का मैटर एक सीध में रहे।\n"
                 prompt += "4. प्राप्तकर्ता का पद, विषय का मैटर, and संदर्भ का मैटर-ये तीनों बिल्कुल एक ही वर्टिकल सीध में होने चाहिए।\n"
-                prompt += "5. पत्र के मुख्य भाग (Body Text) की शुरुआत करते समय, संदर्भ का हवाला देने वाली पहली लाइन को थोड़ा आगे से शुरू करें।\n"
+                prompt += "5. पत्र के मुख्य भाग (Body Text) की शुरुआत करते समय, संदर्भ का हवाला देने वाली पहली line को थोड़ा आगे से शुरू करें।\n"
                 prompt += "6. पत्र की भाषा या आवश्यक शासकीय सामग्री को जबरदस्ती छोटा या संकुचित (short) नहीं करना है। पूरी जानकारी विस्तार से लिखें।\n"
                 prompt += "7. क्रिटिकल नियम (प्रति लॉक): यदि पत्राचार प्रवाह 'अधीनस्थ को निर्देश/पत्र' है तो प्रति में केवल संबंधित अधीनस्थ का पदनाम ही आएगा।\n"
                 prompt += "8. क्रिटिकल नियम (डेटा लॉक): पत्र में दी गई वास्तविक तिथियां (Dates), समय-सीमा, ईमेल आईडी, नाम और स्थानों का विवरण हूबहू शासकीय प्रारूप में शामिल होना चाहिए।\n"
@@ -928,146 +928,12 @@ with col2:
                         st.session_state.draft_text = response.text
                 
                 elif provider_val == "Anthropic Claude":
-                    # Claude का बैकअप कॉल (यदि पुराना सेटअप हो)
                     pass
                 
                 st.rerun()
                 
             except Exception as e:
                 st.error(f"प्रारूप तैयार करने में त्रुटि: {str(e)}")
-                    if extracted_content:
-                        prompt += f"--- स्रोत दस्तावेज़ सामग्री (Extracted Content) ---\n{extracted_content}\n\n"
-                    
-                    if manual_context:
-                        prompt += f"--- मुख्य निर्देश (Core Context/Instructions) ---\n{manual_context}\n\n"
-                        
-                    if data_to_fill:
-                        prompt += f"--- प्रेषित की जाने वाली वास्तविक जानकारी/आँकड़े (Data to be Filled) ---\n{data_to_fill}\n\n"
-                        
-                    if not extracted_content and not manual_context and not data_to_fill and not image_obj:
-                        prompt += "नोट: कोई विशिष्ट स्रोत सामग्री नहीं दी गई है। कृपया मध्य प्रदेश शासन के पत्र प्रारूप का एक डमी उदाहरण तैयार करें।\n"
-                        
-                    model_name = selected_model
-                    
-                    if provider_val == "Google Gemini":
-                        if HAS_NEW_SDK:
-                            client = genai.Client(api_key=api_key)
-                            contents = []
-                            if image_obj is not None:
-                                contents.append(image_obj)
-                            contents.append(prompt)
-                            
-                            response = client.models.generate_content(
-                                model=model_name,
-                                contents=contents,
-                                config=types.GenerateContentConfig(
-                                    system_instruction=system_inst
-                                )
-                            )
-                            st.session_state.draft_text = response.text
-                        else:
-                            genai_legacy.configure(api_key=api_key)
-                            model = genai_legacy.GenerativeModel(
-                                model_name=model_name,
-                                system_instruction=system_inst
-                            )
-                            if image_obj is not None:
-                                response = model.generate_content([prompt, image_obj])
-                            else:
-                                response = model.generate_content(prompt)
-                            st.session_state.draft_text = response.text
-                    elif provider_val == "Anthropic Claude":
-                        client = anthropic.Anthropic(api_key=api_key)
-                        messages_payload = []
-                        
-                        if image_obj is not None:
-                            import base64
-                            buffered = io.BytesIO()
-                            img_format = image_obj.format if image_obj.format else "PNG"
-                            mime_type = f"image/{img_format.lower()}"
-                            if img_format.lower() == "jpg":
-                                mime_type = "image/jpeg"
-                            image_obj.save(buffered, format=img_format)
-                            img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-                            
-                            messages_payload.append({
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "image",
-                                        "source": {
-                                            "type": "base64",
-                                            "media_type": mime_type,
-                                            "data": img_str,
-                                        },
-                                    },
-                                    {
-                                        "type": "text",
-                                        "text": prompt
-                                    }
-                                ]
-                            })
-                        else:
-                            messages_payload.append({
-                                "role": "user",
-                                "content": prompt
-                            })
-                            
-                        response = client.messages.create(
-                            model=model_name,
-                            max_tokens=4000,
-                            system=system_inst,
-                            messages=messages_payload
-                        )
-                        st.session_state.draft_text = response.content[0].text
-                    else:
-                        client = OpenAI(api_key=api_key)
-                        messages_payload = [
-                            {"role": "system", "content": system_inst}
-                        ]
-                        
-                        if image_obj is not None:
-                            import base64
-                            buffered = io.BytesIO()
-                            img_format = image_obj.format if image_obj.format else "PNG"
-                            mime_type = f"image/{img_format.lower()}"
-                            if img_format.lower() == "jpg":
-                                mime_type = "image/jpeg"
-                            image_obj.save(buffered, format=img_format)
-                            img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-                            
-                            messages_payload.append({
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "text",
-                                        "text": prompt
-                                    },
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {
-                                            "url": f"data:{mime_type};base64,{img_str}"
-                                        }
-                                    }
-                                ]
-                            })
-                        else:
-                            messages_payload.append({
-                                "role": "user",
-                                "content": prompt
-                            })
-                            
-                        response = client.chat.completions.create(
-                            model=model_name,
-                            messages=messages_payload
-                        )
-                        st.session_state.draft_text = response.choices[0].message.content
-                        
-                    st.success("✔️ प्रारूप सफलतापूर्वक तैयार हो गया है!")
-                    
-                except Exception as e:
-                    st.error(f"प्रारूप तैयार करने में त्रुटि: {str(e)}")
-                    
     edited_draft = st.text_area(
         "संपादित करें (Edit Draft Text)",
         value=st.session_state.draft_text,
