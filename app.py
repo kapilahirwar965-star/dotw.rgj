@@ -199,15 +199,18 @@ with st.sidebar:
             help="शासकीय प्रारूप तैयार करने के लिए जेमिनी मॉडल का चयन करें।"
         )
     elif provider == "Anthropic Claude":
-        selected_model = st.selectbox(
-            "क्लॉड मॉडल (Claude Model)",
-            options=[
-                "claude-3-5-sonnet"
-            ],
-            index=0,
-            key="claude_model_selection",
-            help="शासकीय प्रारूप तैयार करने के लिए क्लॉड मॉडल का चयन करें।"
-        )
+            selected_model = st.selectbox(
+                "क्लॉड मॉडल (Claude Model)",
+                options=[
+                    "claude-4-6-sonnet-latest",  # आपका नया Sonnet 4.6
+                    "claude-4-8-opus-latest",    # आपका नया Opus 4.8
+                    "claude-4-5-haiku-latest",   # आपका नया Haiku 4.5
+                    "claude-3-5-sonnet"          # पुराना बैकअप
+                ],
+                index=0,
+                key="claude_model_selection",
+                help="शासकीय प्रारूप तैयार करने के लिए क्लॉड मॉडल का चयन करें"
+            )
     else:
         selected_model = st.selectbox(
             "OpenAI मॉडल (OpenAI Model)",
